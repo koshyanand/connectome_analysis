@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 
 ncb/
+data/output
+TODO.txt
