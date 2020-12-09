@@ -39,11 +39,15 @@ def create_degree_dict(graph):
     for i in range(len(degree_list)):
         degree_dict[graph.vs[i]["label"].item()] = degree_list[i]
     return degree_dict
+
+def get_file(path):
+    f = open(path, "r")
+    i = 0;
+    output = []
+    return np.array(f.read().strip().split("\n")) 
     
-def get_labels():
-    df_chimp_header = pd.read_csv(chimp + description, sep='\n')               
-    df_human_header = pd.read_csv(human + description, sep='\n')
-    return np.array(df_chimp_header.values.tolist()), np.array(df_human_header.values.tolist())
+def get_labels():   
+    return get_file(chimp + description), get_file(human + description)
     
 def load_graph():
 
@@ -55,10 +59,10 @@ def load_graph():
     chimp_graph = ig.Graph.Adjacency(chimp_adj_matrix)
     human_graph = ig.Graph.Adjacency(human_adj_matrix)
 
-    df_chimp_header = pd.read_csv(chimp + description, sep='\t')               
-    df_human_header = pd.read_csv(human + description, sep='\t')
-    chimp_graph.vs['label'] = df_chimp_header.to_numpy()
-    human_graph.vs['label'] = df_human_header.to_numpy()
+    df_chimp_header = get_file(chimp + description)                
+    df_human_header = get_file(human + description)  
+    chimp_graph.vs['label'] = np.array(df_chimp_header)
+    human_graph.vs['label'] = np.array(df_human_header)
 
     return chimp_graph, human_graph
 

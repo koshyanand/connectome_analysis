@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import igraph as ig
 import networkx as nx
-from utils import get_max_flow,load_nx_graph, load_graph, create_array
+from utils import get_max_flow,load_nx_graph, load_graph, create_array, get_file
 import math
 from networkx.algorithms import closeness_centrality
 from networkx.algorithms.link_analysis.pagerank_alg import pagerank
@@ -16,7 +16,7 @@ def get_label(isChimp):
     if isChimp:
         filename = chimp + description
     else:
-        filename = chimp + description
+        filename = human + description
     f = open(filename, "r")
     return np.array(f.read().strip().split("\n")) 
 
@@ -28,6 +28,11 @@ def get_tuple(values, arg_sorted_values, isChimp):
         index = arg_sorted_values[i]
         out.append((labels[index], round(values[index], 4)))
     return out
+
+def get_motifs(graph, m_value):
+    motif_vertexes = graph.motifs_randesu(size=m_value)
+    return np.array([0 if math.isnan(count) else count for count in motif_vertexes])
+
         
 def get_centrality(graph, method, topk=None):
     
@@ -56,3 +61,10 @@ def get_centrality(graph, method, topk=None):
         arg_sorted_results = np.argsort(output)[::-1]
         
     return output, arg_sorted_results, mean
+
+def map_edges(edge_list, labels):
+    output = []
+    
+    for s, t in edge_list:
+        output.append(labels[s] + " to " + labels[t])
+    return output
