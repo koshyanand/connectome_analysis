@@ -1,6 +1,12 @@
 import igraph as ig
 import pandas as pd
 import numpy as np
+import networkx as nx
+
+description = "regionDescriptions_short.txt"
+human = "./data/human/"
+chimp = "./data/chimpanzee/"
+data_root = "data/"
 
 def check_if_equal(mat1, mat2):
     count = 0
@@ -13,8 +19,6 @@ def check_if_equal(mat1, mat2):
     print(f"Total number of different edges : {count}")
     return count
 
-# path : Path of text file containing adj matrix
-# dim : Dimention of the adj matrix
 def create_adj_matrix(path, dim):
     adj_matrix = [[0 for x in range(dim)] for y in range(dim)] 
     
@@ -36,12 +40,12 @@ def create_degree_dict(graph):
         degree_dict[graph.vs[i]["label"].item()] = degree_list[i]
     return degree_dict
     
-
+def get_labels():
+    df_chimp_header = pd.read_csv(chimp + description, sep='\n')               
+    df_human_header = pd.read_csv(human + description, sep='\n')
+    return np.array(df_chimp_header.values.tolist()), np.array(df_human_header.values.tolist())
+    
 def load_graph():
-    data_root = "data/"
-    description = "regionDescriptions_short.txt"
-    human = "./data/human/"
-    chimp = "./data/chimpanzee/"
 
     chimp_adj_matrix = create_adj_matrix(chimp + "chimpanzee_60.txt", 72)
     human_adj_matrix = create_adj_matrix(human + "human_60.txt", 72)
@@ -57,3 +61,47 @@ def load_graph():
     human_graph.vs['label'] = df_human_header.to_numpy()
 
     return chimp_graph, human_graph
+
+def load_nx_graph():
+
+    chimp_adj_matrix = create_adj_matrix(chimp + "chimpanzee_60.txt", 72)
+    human_adj_matrix = create_adj_matrix(human + "human_60.txt", 72)
+
+    check_if_equal(chimp_adj_matrix, human_adj_matrix)
+    
+    chimp_graph = nx.from_numpy_matrix(np.array(chimp_adj_matrix), create_using=nx.DiGraph())
+    human_graph = nx.from_numpy_matrix(np.array(human_adj_matrix), create_using=nx.DiGraph())
+    return chimp_graph, human_graph
+
+def get_max_flow(graph):
+    max_flow = []
+    for i, sourceVertex in enumerate(graph.vs):
+
+        for j, targetVertex in enumerate(graph.vs):
+            if i == j:
+                continue
+            max_flow.append((graph.maxflow(i, j).value, i, j))
+    max_flow.sort(reverse = True)
+    
+    return max_flow
+
+def convert_to_nx_graph(graph):
+    return nx.from_numpy_matrix(np.array(graph.get_adjacency().data), create_using=nx.DiGraph())
+    
+def generate_randomized_graph(graph, versions, to_nx = False):
+    random_g_list = []
+    for i in range(versions):
+        new_g = graph.copy()
+        new_g.rewire(n=1000, mode='simple')
+        if to_nx:
+            random_g_list.append(convert_to_nx_graph(new_g))
+        else:
+            random_g_list.append(new_g)
+    
+    return random_g_list
+
+def create_array(dic):
+    out = []
+    for i in range(72):
+        out.append(dic[i])
+    return out
